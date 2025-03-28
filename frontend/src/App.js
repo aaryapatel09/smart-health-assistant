@@ -13,6 +13,7 @@ import {
   ListItem,
   ListItemText,
   Paper,
+  Link,
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -74,6 +75,10 @@ function App() {
             Smart Health Assistant
           </Typography>
           
+          <Typography variant="subtitle1" align="center" color="text.secondary" paragraph>
+            Quick health assessment tool - Get instant insights about your health status
+          </Typography>
+
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <Card>
@@ -215,6 +220,15 @@ function App() {
               )}
             </Grid>
           </Grid>
+
+          <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              This tool is for educational purposes only. Always consult a healthcare professional for medical advice.
+            </Typography>
+            <Link href="https://github.com/aaryapatel09/smart-health-assistant" target="_blank" rel="noopener noreferrer">
+              View on GitHub
+            </Link>
+          </Box>
         </Box>
       </Container>
     </ThemeProvider>
