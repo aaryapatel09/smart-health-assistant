@@ -57,7 +57,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/predict', formData);
+      const response = await axios.post('/api/predict', formData);
       setResults(response.data);
     } catch (err) {
       setError('Error getting predictions. Please try again.');
