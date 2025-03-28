@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Health Assistant 🌟</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #FF6584;
+            --background: #F8F9FF;
+            --card: #FFFFFF;
+            --text: #2D3436;
+            --text-light: #636E72;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #E0E0E0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        .preset-select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #E0E0E0;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            background: white;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+        }
+
+        .results {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--background);
+            border-radius: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .metric h3 {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric .value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .recommendations {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .recommendations li::before {
+            content: "✨";
+            margin-right: 0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Smart Health Assistant 🌟</h1>
+            <p>Get instant insights about your health status</p>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Enter Your Health Data</h2>
+                <select class="preset-select" id="presetSelect">
+                    <option value="">Select Example Profile</option>
+                    <option value="healthy">Healthy Individual</option>
+                    <option value="heartDisease">Heart Disease Risk</option>
+                    <option value="diabetes">Diabetes Risk</option>
+                </select>
+
+                <form id="healthForm">
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bmi">BMI</label>
+                        <input type="number" id="bmi" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bloodPressure">Blood Pressure</label>
+                        <input type="number" id="bloodPressure" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="heartRate">Heart Rate</label>
+                        <input type="number" id="heartRate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cholesterol">Cholesterol</label>
+                        <input type="number" id="cholesterol" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="glucose">Glucose</label>
+                        <input type="number" id="glucose" required>
+                    </div>
+                    <button type="submit" class="btn">Get Health Analysis</button>
+                </form>
+            </div>
+
+            <div class="card results" id="results">
+                <h2>Health Analysis Results</h2>
+                <div class="metric">
+                    <h3>Disease Risk Probability</h3>
+                    <div class="value" id="diseaseRisk">0%</div>
+                </div>
+                <div class="metric">
+                    <h3>Overall Health Risk Score</h3>
+                    <div class="value" id="riskScore">0</div>
+                </div>
+                <h3 style="margin: 1.5rem 0;">Personalized Recommendations</h3>
+                <ul class="recommendations" id="recommendations">
+                    <!-- Recommendations will be added here -->
+                </ul>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>This tool is for educational purposes only. Always consult a healthcare professional for medical advice.</p>
+            <p><a href="https://github.com/aaryapatel09/smart-health-assistant" target="_blank">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const examplePresets = {
+            healthy: {
+                age: 28,
+                bmi: 22,
+                bloodPressure: 120,
+                heartRate: 72,
+                cholesterol: 180,
+                glucose: 95
+            },
+            heartDisease: {
+                age: 55,
+                bmi: 28,
+                bloodPressure: 145,
+                heartRate: 95,
+                cholesterol: 250,
+                glucose: 110
+            },
+            diabetes: {
+                age: 45,
+                bmi: 32,
+                bloodPressure: 130,
+                heartRate: 85,
+                cholesterol: 220,
+                glucose: 160
+            }
+        };
+
+        const recommendations = [
+            "Maintain a balanced diet rich in fruits and vegetables",
+            "Exercise regularly for at least 30 minutes daily",
+            "Get adequate sleep (7-8 hours per night)",
+            "Stay hydrated throughout the day",
+            "Schedule regular health check-ups",
+            "Practice stress management techniques",
+            "Limit processed foods and sugary drinks",
+            "Take regular breaks from sitting",
+            "Practice deep breathing exercises",
+            "Maintain social connections"
+        ];
+
+        document.getElementById('presetSelect').addEventListener('change', (e) => {
+            const preset = examplePresets[e.target.value];
+            if (preset) {
+                Object.keys(preset).forEach(key => {
+                    const input = document.getElementById(key);
+                    if (input) {
+                        input.value = preset[key];
+                    }
+                });
+            }
+        });
+
+        document.getElementById('healthForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Generate mock results
+            const diseaseRisk = (Math.random() * 30 + 10).toFixed(1);
+            const riskScore = (Math.random() * 40 + 20).toFixed(1);
+            const shuffledRecommendations = [...recommendations]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 5);
+
+            // Update results
+            document.getElementById('diseaseRisk').textContent = `${diseaseRisk}%`;
+            document.getElementById('riskScore').textContent = riskScore;
+            
+            const recommendationsList = document.getElementById('recommendations');
+            recommendationsList.innerHTML = shuffledRecommendations
+                .map(rec => `<li>${rec}</li>`)
+                .join('');
+
+            // Show results with animation
+            const results = document.getElementById('results');
+            results.style.display = 'none';
+            results.classList.remove('show');
+            setTimeout(() => {
+                results.style.display = 'block';
+                setTimeout(() => results.classList.add('show'), 50);
+            }, 300);
+        });
+    </script>
+</body>
+</html> 
