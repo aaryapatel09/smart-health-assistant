@@ -5,9 +5,9 @@ A simple web-based health assessment tool that provides quick insights about you
 ## Quick Start
 
 1. Open the `index.html` file in your web browser:
-   - Double-click the `index.html` file, or
-   - Drag the `index.html` file into your browser window, or
-   - Right-click `index.html` and select "Open with" your preferred browser
+   - Click the green 'Code' button on the top
+   - Download zip
+   - Unzip the zipfile and open the index.html file
 2. Enter your health metrics:
    - Age
    - BMI
