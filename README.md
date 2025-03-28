@@ -1,10 +1,13 @@
 # Smart Health Assistant 🏥
 
-A simple web-based health assessment tool that provides quick insights about your health status and personalized recommendations. Visit [https://aaryapatel09.github.io/smart-health-assistant](https://aaryapatel09.github.io/smart-health-assistant) to use the tool.
+A simple web-based health assessment tool that provides quick insights about your health status and personalized recommendations.
 
 ## Quick Start
 
-1. Visit [https://aaryapatel09.github.io/smart-health-assistant](https://aaryapatel09.github.io/smart-health-assistant)
+1. Open the `index.html` file in your web browser:
+   - Double-click the `index.html` file, or
+   - Drag the `index.html` file into your browser window, or
+   - Right-click `index.html` and select "Open with" your preferred browser
 2. Enter your health metrics:
    - Age
    - BMI
@@ -21,40 +24,14 @@ A simple web-based health assessment tool that provides quick insights about you
 - Clean, modern interface
 - Mobile-responsive design
 - Instant results
+- No installation required - just open and use!
 
 ## Tech Stack
 
-- React (Frontend)
-- Material-UI (UI Components)
-- Flask (Backend API)
-- Machine Learning Models
-
-## Local Development
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   # Frontend
-   cd frontend
-   npm install
-   
-   # Backend
-   cd ../backend
-   pip install -r requirements.txt
-   ```
-3. Run the application:
-   ```bash
-   # Terminal 1 - Backend
-   python app.py
-   
-   # Terminal 2 - Frontend
-   cd frontend
-   npm start
-   ```
-
-## Contributing
-
-Feel free to submit issues and enhancement requests! We welcome contributions that can help make healthcare more accessible.
+- HTML5
+- CSS3
+- JavaScript
+- Material Design
 
 ## Disclaimer
 
