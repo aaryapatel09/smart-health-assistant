@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heart Disease Risk Estimator</title>
+<style>
+  :root { --bg:#0f1115; --card:#171a21; --muted:#8b93a7; --fg:#e6e8ee; --accent:#6aa8ff; --ok:#46c08a; --warn:#e5a23b; --bad:#e96b6b; --line:#232834; }
+  * { box-sizing: border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  main { max-width: 880px; margin: 48px auto; padding: 0 20px; }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  .sub { color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+  .grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  label { display:block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .hint { font-size: 11px; color: #5f6578; margin-top: 4px; }
+  input, select { width:100%; background:#0e1016; color:var(--fg); border:1px solid var(--line); border-radius: 8px; padding: 9px 10px; font-size: 14px; font-family: inherit; }
+  input:focus, select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .row { display:flex; gap:10px; align-items:center; margin-top: 18px; flex-wrap: wrap; }
+  button { background: var(--accent); color:#051224; border:0; border-radius: 8px; padding: 10px 16px; font-weight:600; cursor:pointer; font-size: 14px; }
+  button.secondary { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+  button:disabled { opacity: .6; cursor: not-allowed; }
+  .result h2 { margin: 0 0 12px; font-size: 20px; }
+  .band { display:inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .band.low { background: color-mix(in srgb, var(--ok) 25%, transparent); color: var(--ok); }
+  .band.moderate { background: color-mix(in srgb, var(--warn) 25%, transparent); color: var(--warn); }
+  .band.high { background: color-mix(in srgb, var(--bad) 25%, transparent); color: var(--bad); }
+  .prob { font-size: 36px; font-weight: 700; margin-top: 8px; }
+  .bar { height: 8px; background:#1f2430; border-radius: 6px; overflow: hidden; margin-top: 10px; }
+  .bar > div { height: 100%; background: linear-gradient(90deg, var(--ok), var(--warn), var(--bad)); width: 0; transition: width .4s ease; }
+  ul.tips { margin: 14px 0 0; padding-left: 18px; color: #cfd5e6; }
+  ul.tips li { margin: 6px 0; line-height: 1.4; }
+  .disc { color: var(--muted); font-size: 12px; margin-top: 14px; }
+  .err { color: var(--bad); font-size: 13px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Heart disease risk estimator</h1>
+  <p class="sub">Gradient-boosted classifier trained on the UCI Cleveland heart-disease dataset (303 patients). For education only — not a medical device.</p>
+
+  <div class="card">
+    <div class="row" style="margin:0 0 16px">
+      <label style="flex:1; margin:0">
+        <span>Example profile</span>
+        <select id="preset">
+          <option value="">(fill manually)</option>
+          <option value="healthy">Low-risk adult</option>
+          <option value="moderate">Moderate-risk adult</option>
+          <option value="high">High-risk adult</option>
+        </select>
+      </label>
+    </div>
+
+    <form id="form" class="grid">
+      <label>Age (years)<input name="age" type="number" min="1" max="120" step="1" required></label>
+      <label>Sex
+        <select name="sex" required>
+          <option value="1">Male</option>
+          <option value="0">Female</option>
+        </select>
+      </label>
+      <label>Chest pain type
+        <select name="cp" required>
+          <option value="1">Typical angina</option>
+          <option value="2">Atypical angina</option>
+          <option value="3">Non-anginal pain</option>
+          <option value="4">Asymptomatic</option>
+        </select>
+      </label>
+      <label>Resting blood pressure (mm Hg)<input name="trestbps" type="number" min="70" max="220" required></label>
+      <label>Serum cholesterol (mg/dl)<input name="chol" type="number" min="100" max="600" required></label>
+      <label>Fasting blood sugar &gt; 120 mg/dl
+        <select name="fbs" required>
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </label>
+      <label>Resting ECG
+        <select name="restecg" required>
+          <option value="0">Normal</option>
+          <option value="1">ST-T abnormality</option>
+          <option value="2">LV hypertrophy</option>
+        </select>
+      </label>
+      <label>Max heart rate during exercise<input name="thalach" type="number" min="60" max="240" required></label>
+      <label>Exercise-induced angina
+        <select name="exang" required>
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </label>
+      <label>ST depression on exercise (oldpeak)<input name="oldpeak" type="number" min="0" max="8" step="0.1" required></label>
+      <label>ST slope
+        <select name="slope" required>
+          <option value="1">Upsloping</option>
+          <option value="2">Flat</option>
+          <option value="3">Downsloping</option>
+        </select>
+      </label>
+      <label>Major vessels colored (0–3)<input name="ca" type="number" min="0" max="3" step="1" required></label>
+      <label>Thal
+        <select name="thal" required>
+          <option value="3">Normal</option>
+          <option value="6">Fixed defect</option>
+          <option value="7">Reversible defect</option>
+        </select>
+      </label>
+    </form>
+
+    <div class="row">
+      <button id="submit" type="button">Estimate risk</button>
+      <button class="secondary" id="reset" type="button">Reset</button>
+      <span id="err" class="err"></span>
+    </div>
+  </div>
+
+  <div id="resultCard" class="card result" style="display:none">
+    <h2>Result</h2>
+    <div>
+      <span id="band" class="band"></span>
+      <div class="prob" id="prob">—</div>
+      <div class="bar"><div id="fill"></div></div>
+    </div>
+    <ul class="tips" id="tips"></ul>
+    <p class="disc">Educational estimate based on the UCI Cleveland dataset only; cohort, instrumentation, and missing-data patterns differ from the general population. Consult a clinician for medical decisions.</p>
+  </div>
+</main>
+
+<script>
+const PRESETS = {
+  healthy:  { age:35, sex:"0", cp:"3", trestbps:118, chol:180, fbs:"0", restecg:"0", thalach:175, exang:"0", oldpeak:0.0, slope:"1", ca:0, thal:"3" },
+  moderate: { age:55, sex:"1", cp:"2", trestbps:138, chol:235, fbs:"0", restecg:"1", thalach:150, exang:"0", oldpeak:1.2, slope:"2", ca:0, thal:"3" },
+  high:     { age:63, sex:"1", cp:"4", trestbps:155, chol:275, fbs:"1", restecg:"2", thalach:115, exang:"1", oldpeak:2.8, slope:"3", ca:2, thal:"7" },
+};
+
+const form = document.getElementById("form");
+
+document.getElementById("preset").addEventListener("change", (e) => {
+  const v = PRESETS[e.target.value];
+  if (!v) return;
+  for (const [k, val] of Object.entries(v)) {
+    const el = form.elements[k];
+    if (el) el.value = val;
+  }
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  form.reset();
+  document.getElementById("resultCard").style.display = "none";
+  document.getElementById("err").textContent = "";
+});
+
+document.getElementById("submit").addEventListener("click", async () => {
+  const err = document.getElementById("err");
+  err.textContent = "";
+  if (!form.reportValidity()) return;
+
+  const payload = {};
+  for (const el of form.elements) {
+    if (!el.name) continue;
+    payload[el.name] = el.type === "number" || el.tagName === "SELECT" ? Number(el.value) : el.value;
+  }
+
+  const btn = document.getElementById("submit");
+  btn.disabled = true;
+  try {
+    const r = await fetch("/api/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+
+    const card = document.getElementById("resultCard");
+    card.style.display = "block";
+    const pct = (data.probability * 100).toFixed(1);
+    document.getElementById("prob").textContent = pct + "%";
+    document.getElementById("fill").style.width = pct + "%";
+    const band = document.getElementById("band");
+    band.textContent = data.risk_band + " risk";
+    band.className = "band " + data.risk_band;
+    const ul = document.getElementById("tips");
+    ul.innerHTML = "";
+    for (const t of data.recommendations) {
+      const li = document.createElement("li");
+      li.textContent = t;
+      ul.appendChild(li);
+    }
+  } catch (e) {
+    err.textContent = "Failed: " + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
