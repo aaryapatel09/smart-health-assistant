@@ -72,6 +72,24 @@ def test_out_of_range_rejected(client):
 
 def test_model_predict_row_matches_api(client):
     clf = web_app._clf
+    baseline = web_app._baseline
     api = client.post("/api/predict", json=HIGH_RISK).get_json()
-    direct = mlmodel.predict(clf, HIGH_RISK)
+    direct = mlmodel.predict(clf, HIGH_RISK, baseline=baseline)
     assert api["probability"] == pytest.approx(direct["probability"])
+
+
+def test_contributions_shape(client):
+    api = client.post("/api/predict", json=HIGH_RISK).get_json()
+    assert "contributions" in api
+    assert "baseline_probability" in api
+    assert isinstance(api["contributions"], list)
+    assert len(api["contributions"]) >= 3
+    # Deltas should be floats, directions valid, sorted by |delta| descending
+    last_abs = float("inf")
+    for c in api["contributions"]:
+        assert set(c.keys()) >= {"feature", "label", "value", "delta", "direction"}
+        assert c["direction"] in {"up", "down"}
+        assert abs(c["delta"]) <= last_abs
+        last_abs = abs(c["delta"])
+    # Sanity: high-risk profile should have at least one up-contribution
+    assert any(c["direction"] == "up" for c in api["contributions"])

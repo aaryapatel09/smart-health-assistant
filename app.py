@@ -14,7 +14,7 @@ import model
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app)
 
-_clf = model.load_or_train()
+_clf, _baseline = model.load_or_train()
 
 # Plausibility bounds for each field. Values outside these get rejected with a
 # clear error rather than silently imputed or run through the model — a
@@ -70,8 +70,10 @@ def predict():
     cleaned, err = _validate(payload)
     if err:
         return jsonify(error=err), 400
-    return jsonify(model.predict(_clf, cleaned))
+    return jsonify(model.predict(_clf, cleaned, baseline=_baseline))
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    import os
+
+    app.run(host="127.0.0.1", port=int(os.environ.get("PORT", 5000)), debug=True)

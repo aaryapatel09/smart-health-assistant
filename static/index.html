@@ -33,6 +33,18 @@
   ul.tips li { margin: 6px 0; line-height: 1.4; }
   .disc { color: var(--muted); font-size: 12px; margin-top: 14px; }
   .err { color: var(--bad); font-size: 13px; margin-top: 8px; }
+  .baseline { color: var(--muted); font-size: 12px; margin-top: 6px; text-align: center; }
+  .contrib-wrap { margin-top: 18px; padding-top: 14px; border-top: 1px solid #1f2430; }
+  .contrib-title { margin: 0 0 4px; font-size: 15px; }
+  .contrib-sub { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+  .contrib-row { display: grid; grid-template-columns: 160px 1fr 60px; gap: 10px; align-items: center; margin: 4px 0; font-size: 13px; }
+  .contrib-name { color: #cfd5e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .contrib-bar { position: relative; height: 18px; background: #0e1016; border-radius: 4px; border: 1px solid #1f2430; overflow: hidden; }
+  .contrib-bar .mid { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: #232834; }
+  .contrib-bar .fill { position: absolute; top: 0; bottom: 0; height: 100%; }
+  .contrib-bar .fill.up   { left: 50%; background: color-mix(in srgb, var(--bad) 70%, transparent); }
+  .contrib-bar .fill.down { right: 50%; background: color-mix(in srgb, var(--ok)  70%, transparent); }
+  .contrib-delta { font-variant-numeric: tabular-nums; text-align: right; color: var(--muted); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -122,7 +134,15 @@
       <span id="band" class="band"></span>
       <div class="prob" id="prob">—</div>
       <div class="bar"><div id="fill"></div></div>
+      <div class="baseline" id="baseline"></div>
     </div>
+
+    <div class="contrib-wrap" id="contribWrap" style="display:none">
+      <h3 class="contrib-title">Why this score</h3>
+      <p class="contrib-sub">Each bar is this feature's share of the total push on your score, compared to a typical-patient value. Red = pushing risk up; green = pulling it down. Computed in log-odds space so saturated predictions still break down cleanly.</p>
+      <div class="contrib-list" id="contribList"></div>
+    </div>
+
     <ul class="tips" id="tips"></ul>
     <p class="disc">Educational estimate based on the UCI Cleveland dataset only; cohort, instrumentation, and missing-data patterns differ from the general population. Consult a clinician for medical decisions.</p>
   </div>
@@ -150,7 +170,39 @@ document.getElementById("reset").addEventListener("click", () => {
   form.reset();
   document.getElementById("resultCard").style.display = "none";
   document.getElementById("err").textContent = "";
+  document.getElementById("contribWrap").style.display = "none";
 });
+
+function renderContributions(list) {
+  const wrap = document.getElementById("contribWrap");
+  const container = document.getElementById("contribList");
+  container.innerHTML = "";
+  if (!list.length) {
+    wrap.style.display = "none";
+    return;
+  }
+  // Scale bars so the biggest contribution fills half the bar width.
+  const maxAbs = Math.max(...list.map((c) => Math.abs(c.delta)), 0.001);
+  for (const c of list.slice(0, 6)) {
+    const pct = (Math.abs(c.delta) / maxAbs) * 50;
+    const row = document.createElement("div");
+    row.className = "contrib-row";
+    row.innerHTML = `
+      <div class="contrib-name" title="${escapeHtml(c.label)} (value: ${c.value})">${escapeHtml(c.label)}</div>
+      <div class="contrib-bar">
+        <div class="mid"></div>
+        <div class="fill ${c.direction}" style="width:${pct.toFixed(1)}%"></div>
+      </div>
+      <div class="contrib-delta">${c.delta >= 0 ? "+" : ""}${(c.delta * 100).toFixed(1)}% share</div>
+    `;
+    container.appendChild(row);
+  }
+  wrap.style.display = "block";
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
 
 document.getElementById("submit").addEventListener("click", async () => {
   const err = document.getElementById("err");
@@ -178,6 +230,13 @@ document.getElementById("submit").addEventListener("click", async () => {
     const band = document.getElementById("band");
     band.textContent = data.risk_band + " risk";
     band.className = "band " + data.risk_band;
+    const baseline = document.getElementById("baseline");
+    if (typeof data.baseline_probability === "number") {
+      baseline.textContent = `Typical-patient baseline: ${(data.baseline_probability * 100).toFixed(1)}%`;
+    } else {
+      baseline.textContent = "";
+    }
+    renderContributions(data.contributions || []);
     const ul = document.getElementById("tips");
     ul.innerHTML = "";
     for (const t of data.recommendations) {
