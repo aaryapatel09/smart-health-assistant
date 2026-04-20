@@ -16,6 +16,43 @@ CORS(app)
 
 _clf = model.load_or_train()
 
+# Plausibility bounds for each field. Values outside these get rejected with a
+# clear error rather than silently imputed or run through the model — a
+# predicted risk from age=500 or chol=-10 is worse than no prediction.
+BOUNDS: dict[str, tuple[float, float]] = {
+    "age": (1, 120),
+    "sex": (0, 1),
+    "cp": (1, 4),
+    "trestbps": (50, 260),
+    "chol": (80, 700),
+    "fbs": (0, 1),
+    "restecg": (0, 2),
+    "thalach": (40, 250),
+    "exang": (0, 1),
+    "oldpeak": (0, 10),
+    "slope": (1, 3),
+    "ca": (0, 3),
+    "thal": (3, 7),  # UCI encoding uses 3, 6, 7
+}
+
+
+def _validate(payload: dict) -> tuple[dict | None, str | None]:
+    missing = [f for f in model.FEATURES if f not in payload]
+    if missing:
+        return None, f"missing fields: {', '.join(missing)}"
+    cleaned: dict = {}
+    for f in model.FEATURES:
+        raw = payload[f]
+        try:
+            v = float(raw)
+        except (TypeError, ValueError):
+            return None, f"field {f!r} must be numeric, got {raw!r}"
+        lo, hi = BOUNDS[f]
+        if not (lo <= v <= hi):
+            return None, f"field {f!r} out of range [{lo}, {hi}]: {v}"
+        cleaned[f] = v
+    return cleaned, None
+
 
 @app.get("/")
 def index():
@@ -30,10 +67,10 @@ def health():
 @app.post("/api/predict")
 def predict():
     payload = request.get_json(silent=True) or {}
-    missing = [f for f in model.FEATURES if f not in payload]
-    if missing:
-        return jsonify(error=f"missing fields: {', '.join(missing)}"), 400
-    return jsonify(model.predict(_clf, payload))
+    cleaned, err = _validate(payload)
+    if err:
+        return jsonify(error=err), 400
+    return jsonify(model.predict(_clf, cleaned))
 
 
 if __name__ == "__main__":

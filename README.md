@@ -21,6 +21,13 @@ python model.py
 # prints 5-fold ROC-AUC on the training data
 ```
 
+## Tests
+
+```bash
+pip install pytest
+pytest tests/
+```
+
 ## API
 
 ```bash
